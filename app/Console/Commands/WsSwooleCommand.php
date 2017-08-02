@@ -78,8 +78,7 @@ class WsSwooleCommand extends Command
             $this->serv->on('close',array($handler,'onClose'));
             $this->serv->on('Task',array($handler,'onTask'));
             $this->serv->on('Finish',array($handler,'onFinish'));
-
-
+            $this->serv->on('WorkerStart',array($handler,'onWokerStart'));
             $this->serv->start();
     }
     public function stop()

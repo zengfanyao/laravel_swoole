@@ -19,14 +19,35 @@ class WsSwooleHandler
 
     public function onStart($serv)
     {
-        $file=config('swoole.pidfile');
-       file_put_contents($file,$serv->master_pid);
+      \Log::info('OnStart start');
+    }
+    public function onWokerStart($serv,$worker_id)
+    {
+        \Log::info('OnWorkerStart');
+
     }
 
     public function onConnect($serv, $fd, $from_id)
     {
 
     }
+
+    public function onTimer($serv,$interval)
+    {
+        switch ($interval)
+        {
+            case "500":
+                \Log::info('Do Thing A at Interval 500\n');
+                break;
+            case "1000":
+                \Log::info('Do Thing B at Interval 500\n');
+                break;
+            case "15000":
+                \Log::info('Do Thing C at Interval 500\n');
+                break;
+        }
+    }
+
 
 //    public function onHandshake(\swoole_http_request $request, \swoole_http_response $respons)
 //    {
