@@ -9,6 +9,8 @@
 namespace App\Handlers;
 
 
+use Swoole\Table;
+
 class WsSwooleHandler
 {
     public function __construct()
@@ -39,23 +41,40 @@ class WsSwooleHandler
 
     public function onOpen($serv,$request)
     {
+
+
        // \App\Logic\WsLogic::onOpen($serv,$request);
         // \Log::info("server: handshake success with fd{$request->fd}\n");
         // \Log::info(json_encode($request));
     }
     public function onTask($serv,$task_id,$from_id,$data)
     {
-        \Log::info('process Task');
-        sleep(10);
-        return;
+        \Log::info("This Task {$task_id} from Worker {$from_id}\n");
+        \Log::info("Data: {$data}\n");
+        for($i=0;$i<10;$i++)
+        {
+            sleep(1);
+            \Log::info("Task {$task_id} Handle {$i} times ... \n");
+            $fd=json_decode($data,true)['fd'];
+            $serv->send($fd,"Data in Task [$task_id]");
+            return "Task {$task_id} result";
+        }
+   
     }
     public function onFinish($serv,$task_id,$data)
     {
-        \Log::info('Task OnFinish');
+       \Log::info("Task {$task_id} finish\n");
+       \Log::info("Result: {$data}\n");
     }
     public function onMessage($serv,$frame)
     {
          \Log::info("receive from {$frame->fd}:{$frame->data},opcode:{$frame->opcode},fin:{$frame->finish}\n");
+        $param=[
+            'fd'=>$frame->fd
+        ];
+        $serv->task(json_encode($param));
+        \Log::info('Continue Handle Worker');
+
        // $serv->push($frame->fd, "this is server");
     }
     public function onClose($serv,$fd)
