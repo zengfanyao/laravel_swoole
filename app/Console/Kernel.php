@@ -3,6 +3,7 @@
 namespace App\Console;
 
 use App\Console\Commands\SwooleCommand;
+use App\Console\Commands\SwooleProcess;
 use App\Console\Commands\WsClient;
 use App\Console\Commands\WsSwooleCommand;
 use Illuminate\Console\Scheduling\Schedule;
@@ -18,7 +19,8 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         SwooleCommand::class,
         WsSwooleCommand::class,
-        WsClient::class
+        WsClient::class,
+        SwooleProcess::class,
     ];
 
     /**
