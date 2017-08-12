@@ -49,7 +49,8 @@ class SwooleCommand extends Command
         {
             case "start":
                 $this->info('swoole observer started');
-                $this->start();
+               // $this->start();
+                $this->start1();
                 break;
             case "stop":
                 $this->info('stoped');
@@ -61,6 +62,27 @@ class SwooleCommand extends Command
                 break;
         }
     }
+
+    public function start1()
+    {
+        $server=new \swoole_server("127.0.0.1",9501);
+
+        $process = new \swoole_process(function($process) use ($server) {
+            while (true) {
+                $msg = $process->read();
+                foreach($server->connections as $conn) {
+                    $server->send($conn, $msg);
+                }
+            }
+        });
+
+        $server->addProcess($process);
+        $server->on('receive',function ($serv,$fd,$from_id,$data)use ($process){
+            $process->write($data);
+        });
+        $server->start();
+    }
+
     private function start()
     {
 
