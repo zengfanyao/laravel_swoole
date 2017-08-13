@@ -9,6 +9,16 @@
 namespace App\swoole\ChatRoom\Client;
 
 
+use App\swoole\AsyncClient\Client;
+use function fgets;
+use function fwrite;
+use function json_encode;
+use function pack;
+use const STDIN;
+use const STDOUT;
+use function strlen;
+use const true;
+
 class ChatRoom
 {
     private $client;
@@ -46,10 +56,70 @@ class ChatRoom
         {
             echo "new user {$param['name']} online!";
             $this->online_list[$param['fd']]=$param['name'];
-        }else
+        }else if($param['op']=='recv')
         {
-
+            echo "{$this->online_list[$param['from']]} say : {$param['msg']}\n";
+        }else if ($param['op']=='onlineList')
+        {
+            $list=$param['list'];
+            echo "online: \n";
+            foreach ($list as $fd=>$name)
+            {
+                $this->online_list[$fd]=$name;
+                echo "{$name}";
+            }
+        }else if ($param['op']=='offline')
+        {
+            echo "{$this->online_list[$param['fd']]} offline\n";
+            unset($this->online_list[$param['fd']]);
         }
+
     }
+    public function onConnect($cli)
+    {
+        fwrite(STDOUT,"Enter your name: ");
+        $msg=trim(fgets(STDIN));
+        $data=json_encode(
+            [
+                'json'=>'Chat',
+                'crtl'=>'Chat',
+                'method'=>'online',
+                'name'=>$msg
+            ]
+        );
+        $data=pack("Na*",strlen($data),$data);
+        $cli->send($data);
+        \swoole_event_add(STDIN,function () use ($cli){
+            $msg = trim(fgets(STDIN));
+            $data = json_encode(array(
+                'json'   => 'Chat',
+                'ctrl'   => 'Chat',
+                'method' => 'send',
+                'sendto' => $this->channel,
+                'msg'    => $msg
+            ));
+            $data = pack('Na*', strlen($data), $data);
+            $cli->send($data);
+        });
+
+    }
+    public function onClose($cli)
+    {
+        echo "Client close connection\n";
+    }
+    public function onError()
+    {
+
+    }
+    public function send($data)
+    {
+
+    }
+    public function isConnected()
+    {
+        return $this->client->isConnected();
+    }
+
 }
-https://github.com/chenchaojie/Swoole/blob/master/ChatRoom/Client/chatroom.php
+$cli=new Client();
+$cli->connect();
